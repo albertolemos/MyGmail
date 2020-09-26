@@ -1,6 +1,9 @@
 package com.example.mygmail;
 
 import android.os.Bundle;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -17,11 +20,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private EmailAdapter emailAdapter;
+    private ActionMode actionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,27 +52,65 @@ public class MainActivity extends AppCompatActivity {
         );
 
         helper.attachToRecyclerView(recyclerView);
+
+        emailAdapter.setListener(new EmailAdapter.EmailAdapterListener() {
+            @Override
+            public void onItemClick(int position) {
+                enableActionMode(position);
+            }
+
+            @Override
+            public void onItemLongClick(int position) {
+                enableActionMode(position);
+            }
+        });
     }
 
-    private class ItemTouchHandler extends ItemTouchHelper.SimpleCallback {
-        public ItemTouchHandler(int dragDirs, int swipeDirs) {
-            super(dragDirs, swipeDirs);
-        }
+    private void enableActionMode(int position) {
+        if (actionMode == null)
+            actionMode = startActionMode(new ActionMode.Callback() {
+                @Override
+                public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                    actionMode.getMenuInflater().inflate(R.menu.menu_delete, menu);
+                    return true;
+                }
 
-        @Override
-        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-            int from = viewHolder.getAdapterPosition();
-            int to = target.getAdapterPosition();
+                @Override
+                public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                    return false;
+                }
 
-            Collections.swap(emailAdapter.getEmails(), from, to);
-            emailAdapter.notifyItemMoved(from, to);
-            return true;
-        }
+                @Override
+                public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                    if (menuItem.getItemId() == R.id.action_delete) {
+                        emailAdapter.deleteEmails();
+                        actionMode.finish();
+                        return true;
+                    }
+                    return false;
+                }
 
-        @Override
-        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            emailAdapter.getEmails().remove(viewHolder.getAdapterPosition());
-            emailAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                @Override
+                public void onDestroyActionMode(ActionMode actionMode) {
+                    emailAdapter.selectedItems.clear();
+                    List<Email> emails = emailAdapter.getEmails();
+                    for (Email email : emails) {
+                        if (email.isSelected())
+                            email.setSelected(false);
+                    }
+
+                    emailAdapter.notifyDataSetChanged();
+                    actionMode = null;
+                }
+            });
+
+        emailAdapter.toggleSelection(position);
+        final int size = emailAdapter.selectedItems.size();
+        if (size == 0) {
+            actionMode.finish();
+        } else {
+            actionMode.setTitle(size + "");
+            actionMode.invalidate();
         }
     }
 
@@ -93,8 +136,31 @@ public class MainActivity extends AppCompatActivity {
                     .setPreview(preview.toString())
                     .build()
             );
-        } catch (ParseException e) {}
+        } catch (ParseException e) {
 
+        }
         emailAdapter.notifyItemInserted(0);
+    }
+
+    private class ItemTouchHandler extends ItemTouchHelper.SimpleCallback {
+        public ItemTouchHandler(int dragDirs, int swipeDirs) {
+            super(dragDirs, swipeDirs);
+        }
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            int from = viewHolder.getAdapterPosition();
+            int to = target.getAdapterPosition();
+
+            Collections.swap(emailAdapter.getEmails(), from, to);
+            emailAdapter.notifyItemMoved(from, to);
+            return true;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            emailAdapter.getEmails().remove(viewHolder.getAdapterPosition());
+            emailAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+        }
     }
 }

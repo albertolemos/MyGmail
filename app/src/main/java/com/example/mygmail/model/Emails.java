@@ -29,7 +29,6 @@ public class Emails {
                         .setSubject("Assista aos vídeos mais vistos da semana")
                         .setPreview("Não deixe de ver, curtir e compartilhar os vídeos que foram ...")
                         .setDate("20 Sep")
-                        .setSelected(true)
                         .build(),
 
                 Email.EmailBuilder.builder()
@@ -46,7 +45,6 @@ public class Emails {
                         .setPreview("Oi, Painho! Vê pra mim quantas horas ainda posso jogar essa semana, pois talvez eu guarde pra jogar depois")
                         .setDate("24 Sep")
                         .setStared(true)
-                        .setSelected(true)
                         .setUnread(true)
                         .build(),
 
@@ -56,7 +54,6 @@ public class Emails {
                         .setPreview("Olá, Painho! Estou empenhado em mudar o meu comportamento e assim não deixar você e mainha tristes")
                         .setDate("24 Sep")
                         .setStared(true)
-                        .setSelected(true)
                         .setUnread(true)
                         .build(),
 
@@ -74,7 +71,6 @@ public class Emails {
                         .setPreview("Olá, Alberto! Foi maravilhoso ter você como nosso aluno durante esse tempo")
                         .setDate("25 Sep")
                         .setUnread(true)
-                        .build()
-        );
+                        .build());
     }
 }
